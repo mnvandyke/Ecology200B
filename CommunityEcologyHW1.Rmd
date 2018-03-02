@@ -15,7 +15,7 @@ plot_data <- read.csv("plot_data.csv")
 species_pool <- read.csv("species_pool.csv")
 #subset species pool data to just include species from plot 25
 temp <- subset(plot_data, plot_data$plot==25) # temporary data frame to get the species from plot 25
-plot25 <- merge(temp, species_pool, by = "species")
+plot25 <- merge(temp, species_pool, by = "species") # merge with the species pool data from to get trait data for all the species in plot 25
 
 
 ```
@@ -23,7 +23,7 @@ plot25 <- merge(temp, species_pool, by = "species")
 Log Leaf Area Trait:
 ```{r}
 # number of species in focal community/plot for null model:
-N <- length(plot25) - 1
+N <- length(plot25$species)
 
 ## vector to store expected ranges of log leaf area from null communities:
 lla_null_range<-NA
@@ -157,13 +157,9 @@ text("observed value", x=lss_obs_range, y= 200, pos=4, col="red")
 n_more2 <- sum(lss_obs_range<lss_null_range)
 ## how many null values is the observed value greater than?
 n_less2 <-sum(lss_obs_range>lss_null_range)
-## how many null values is the observed value tied with (this is especially an issue here because there are a small number of species in the pool- with larger pools ties are less common)
+## how many null values is the observed value tied with?
 n_tied2<-sum(lss_obs_range==lss_null_range)
 
-## as we have a bunch of ties here, the convention is to rank your observed value in the middle of the ties. 
-## p results (note that the tradition is also to add the observed value to the null distribution, hence 999 reps in the null and 999+1 in the denominator of the p value calculation)
-print(c("one tailed test, range smaller than expected, p:", (n_less2 + n_tied2/2) / (reps+1) ))
-print(c("one tailed test, range greater than expected, p:", (n_more2 + n_tied2/2) / (reps+1) ))
 ## two tailed tests:
 if(n_less2< ((reps+1)/2)){
   print(c("two tailed test, p:", (n_less2 + n_tied2/2)*2 / (reps+1) ))
@@ -340,35 +336,21 @@ plot28 <- merge(temp28, species_pool, by = "species")
 ```
 
 ```{r}
-#Create null model of log leaf areas to compare with plots 20, 21, 28. Since they all have a species N = 7, you can use the same model for them all. I am giving each individual an equal chance of dispersing into the random community. 
+#Create null model of log leaf areas to compare with plots 20, 21, 28. Since they all have a species N = 6 as does plot 25, you can use the same null model for them all. I am giving each individual an equal chance of dispersing into the random community so I am using the same null model I craeted for lof leaf area in part B. 
 
-N_stream <- length(plot20) # indicates how large a sample should be drawn for null communities
-
-## vector to store expected ranges of log leaf area from null communities:
-lla_null_range_stream <-NA
-
-## loop to generate null communities and calculate expected log leaf area trait ranges
-for(ii in 1:reps){
-  
-  sample(species_pool$logLeafArea, N_stream, prob = species_pool$logLeafArea/sum(species_pool$abundance))->lla_random_community_stream
-  
-  lla_null_range_stream[ii]<-max(lla_random_community_stream)-min(lla_random_community_stream))
-  
-}
-
-hist(lla_null_range_p20, xlab= "range of log leaf area", ylab = "distribution from null model, N=7", main= "Histogram of null model range of log leaf area for plot 20", xlim = c(0,4))
+hist(lla_null_range2, xlab= "range of log leaf area", ylab = "distribution from null model, N=6", main= "Histogram of null model range of log leaf area for plot 20", xlim = c(0,4))
 # quick *estimate* of sig. thresholds for plotting (for a two-tailed test)
-quantile(lla_null_range_p20, probs=c(0.025, .975))->cutoffs_p20
-abline(v=cutoffs_p20, lty=2)
-text("2.5%", x=cutoffs_p20[1], y=180, pos=4)
-text("97.5%", x=cutoffs_p20[2], y=180, pos=4)
+quantile(lla_null_range2, probs=c(0.025, .975))->cutoffs3
+abline(v=cutoffs3, lty=2)
+text("2.5%", x=cutoffs3[1], y=180, pos=4)
+text("97.5%", x=cutoffs3[2], y=180, pos=4)
 
 ## expected value (mean) from null:
-abline(v=mean(lla_null_range_p20), lty=2)
-text("mean", x=mean(lla_null_range_p20), y=265, pos=4)
+abline(v=mean(lla_null_range2), lty=2)
+text("mean", x=mean(lla_null_range2), y=265, pos=4)
 
 ## add the observed range of log leaf area from plot 20
-abs(max(plot20$logLeafArea) - min(plot20$logLeafArea))->lla_obs_range_p20
+max(plot20$logLeafArea) - min(plot20$logLeafArea) ->lla_obs_range_p20
 
 abline(v=lla_obs_range_p20, col='red', lwd=3)
 text("observed value", x=lla_obs_range_p20, y= 260, pos=4, col="red")
@@ -379,118 +361,182 @@ text("observed value", x=lla_obs_range_p20, y= 260, pos=4, col="red")
 ## calculate a proper p value:
 
 ## how many null values is the observed value less than?
-n_more_p20 <- sum(lla_obs_range_p20<lla_null_range_p20)
+n_more_p20 <- sum(lla_obs_range_p20<lla_null_range2)
 ## how many null values is the observed value greater than?
-n_less_p20 <-sum(lla_obs_range_p20>lla_null_range_p20)
-## how many null values is the observed value tied with \
-n_tied_p20<-sum(lla_obs_range_p20==lla_null_range_p20)
+n_less_p20 <-sum(lla_obs_range_p20>lla_null_range2)
+## how many null values is the observed value tied with?
+n_tied_p20 <-sum(lla_obs_range_p20==lla_null_range2)
 
-## two tailed tests:
-if(n_less_p20< ((reps+1)/2)){
+## two tailed test:
+if(n_less_p20 < ((reps+1)/2)){
   print(c("two tailed test, p value for plot 20 lla:", (n_less_p20 + n_tied_p20/2)*2 / (reps+1) ))
 }else{
   print(c("two tailed test, p value for plot 20 lla:", (n_more_p20 + n_tied_p20/2)*2 / (reps+1) ))
 }
 
+
 ```
 
 ```{r}
-#Create null model of log leaf areas for plot 21
+## calculate the standard effect size
 
-Np21 <- length(plot21) # indicates how large a sample should be drawn for null communities
+#need mean and standard deviation of null distribution:
+lla_null_mean2<-mean(lla_null_range2)
+lla_null_sd2<-sd(lla_null_range2)
 
-## vector to store expected ranges of log leaf area from null communities:
-lla_null_range_p21<-NA
+lla_range_SES_p20<-(lla_obs_range_p20 - lla_null_mean2)/lla_null_sd2
 
-## loop to generate null communities and calculate expected log leaf area trait ranges
-for(ii in 1:reps){
-  
-  sample(species_pool$logLeafArea, Np21)->lla_random_community_p21
-  
-  lla_null_range_p21[ii]<-abs(max(lla_random_community_p21)-min(lla_random_community_p21))
-  
-}
+print(c("standard effect size:", round(lla_range_SES_p20, 3)))
+```
 
-hist(lla_null_range_p21, xlab= "range of log leaf area", ylab = "distribution from null model, N=7", main= "Histogram of null model range of log leaf area for plot 21", xlim = c(0,4))
+
+```{r}
+## Plot 21
+hist(lla_null_range2, xlab= "range of log leaf area", ylab = "frequency", main= "Histogram of null model range of log leaf area, N=6", xlim = c(0,4))
 # quick *estimate* of sig. thresholds for plotting (for a two-tailed test)
-quantile(lla_null_range_p21, probs=c(0.025, .975))->cutoffs_p21
-abline(v=cutoffs_p21, lty=2)
-text("2.5%", x=cutoffs_p21[1], y=180, pos=4)
-text("97.5%", x=cutoffs_p21[2], y=180, pos=4)
+quantile(lla_null_range2, probs=c(0.025, .975))->cutoffs3
+abline(v=cutoffs3, lty=2)
+text("2.5%", x=cutoffs3[1], y=180, pos=4)
+text("97.5%", x=cutoffs3[2], y=180, pos=4)
 
 ## expected value (mean) from null:
-abline(v=mean(lla_null_range_p21), lty=2)
-text("mean", x=mean(lla_null_range_p21), y=265, pos=4)
+abline(v=mean(lla_null_range2), lty=2)
+text("mean", x=mean(lla_null_range2), y=260, pos=4)
 
 ## add the observed range of log leaf area from plot 21
-max(plot21$logLeafArea) - min(plot21$logLeafArea)->lla_obs_range_p21
+max(plot21$logLeafArea) - min(plot21$logLeafArea) ->lla_obs_range_p21
 
 abline(v=lla_obs_range_p21, col='red', lwd=3)
-text("observed value", x=lla_obs_range_p21, y= 260, pos=4, col="red")
+text("plot 21 observed value", x=lla_obs_range_p21, y= 300, pos=4, col="red")
+
+```
+
+
+```{r}
+## calculate a proper p value for plot 21 lla range:
+
+## how many null values is the observed value less than?
+n_more_p21 <- sum(lla_obs_range_p21<lla_null_range2)
+## how many null values is the observed value greater than?
+n_less_p21 <-sum(lla_obs_range_p21>lla_null_range2)
+## how many null values is the observed value tied with?
+n_tied_p21 <-sum(lla_obs_range_p21==lla_null_range2)
+
+## two tailed test:
+if(n_less_p21 < ((reps+1)/2)){
+  print(c("two tailed test, p value for plot 21 lla:", (n_less_p21 + n_tied_p21/2)*2 / (reps+1) ))
+}else{
+  print(c("two tailed test, p value for plot 21 lla:", (n_more_p21 + n_tied_p21/2)*2 / (reps+1) ))
+}
+
+```
+
+```{r}
+##SES for plot 21 lla
+lla_range_SES_p21<-(lla_obs_range_p21 - lla_null_mean2)/lla_null_sd2
+
+print(c("standard effect size:", round(lla_range_SES_p21, 3)))
 
 ```
 
 ```{r}
 #Create null model of log leaf areas for plot 28
 
-Np28 <- length(plot28) # indicates how large a sample should be drawn for null communities
+hist(lla_null_range2, xlab= "range of log leaf area", ylab = "distribution from null model, N=7", main= "Histogram of null model range of log leaf area for plot 28", xlim = c(0,4))
+# quick *estimate* of sig. thresholds for plotting (for a two-tailed test)
+quantile(lla_null_range2, probs=c(0.025, .975))->cutoffs3
+abline(v=cutoffs3, lty=2)
+text("2.5%", x=cutoffs3[1], y=180, pos=4)
+text("97.5%", x=cutoffs3[2], y=180, pos=4)
 
+## expected value (mean) from null:
+abline(v=mean(lla_null_range2), lty=2)
+text("mean", x=mean(lla_null_range2), y=265, pos=4)
+
+## add the observed range of log leaf area from plot 28
+max(plot28$logLeafArea) - min(plot28$logLeafArea) ->lla_obs_range_p28
+
+abline(v=lla_obs_range_p28, col='red', lwd=3)
+text("observed value", x=lla_obs_range_p28, y= 300, pos=4, col="red")
+
+```
+
+```{r}
+## calculate a proper p value for plot 28 lla range:
+
+## how many null values is the observed value less than?
+n_more_p28 <- sum(lla_obs_range_p28<lla_null_range2)
+## how many null values is the observed value greater than?
+n_less_p28 <-sum(lla_obs_range_p28>lla_null_range2)
+## how many null values is the observed value tied with?
+n_tied_p28 <-sum(lla_obs_range_p28==lla_null_range2)
+
+## two tailed test:
+if(n_less_p28 < ((reps+1)/2)){
+  print(c("two tailed test, p value for plot 28 lla:", (n_less_p28 + n_tied_p28/2)*2 / (reps+1) ))
+}else{
+  print(c("two tailed test, p value for plot 28 lla:", (n_more_p28 + n_tied_p28/2)*2 / (reps+1) ))
+}
+
+
+```
+
+```{r}
+##SES for plot 28 lla
+lla_range_SES_p28<-(lla_obs_range_p21 - lla_null_mean2)/lla_null_sd2
+
+print(c("standard effect size:", round(lla_range_SES_p28, 3)))
+
+```
+
+Other way to answer this question:
+```{r}
+# Isolate all the species found in those three other plots near the stream - plot 25 doesn't include any other species that are not found in one of these three.
+stream <-rbind(plot20, plot21, plot28)
+stream$plot <- NULL # delete plot column
+library(dplyr)
+stream <- stream %>% distinct #delete repeated rows
+
+```
+
+
+```{r}
+## Null model for community of stream plants
+Nstream <- length(stream$species)
 ## vector to store expected ranges of log leaf area from null communities:
-lla_null_range_p28<-NA
+lla_stream_null<-NA
 
-## loop to generate null communities and calculate expected log leaf area trait ranges
+## loop to generate null communities and calculate expected trait ranges
 for(ii in 1:reps){
   
-  sample(species_pool$logLeafArea, Np28)->lla_random_community_p28
+  sample(species_pool$logLeafArea, Nstream, prob = species_pool$abundance/sum(species_pool$abundance))->lla_random_stream_comm
   
-  lla_null_range_p28[ii]<-abs(max(lla_random_community_p28)-min(lla_random_community_p28))
+  lla_stream_null[ii]<-max(lla_random_stream_comm)-min(lla_random_stream_comm)
   
 }
 
-hist(lla_null_range_p28, xlab= "range of log leaf area", ylab = "distribution from null model, N=7", main= "Histogram of null model range of log leaf area for plot 28", xlim = c(0,4))
+hist(lla_stream_null, xlab= "range of log leaf area", ylab = "frequency", main= "Histogram of null model range of log leaf area, N=16")
+
 # quick *estimate* of sig. thresholds for plotting (for a two-tailed test)
-quantile(lla_null_range_p28, probs=c(0.025, .975))->cutoffs_p28
-abline(v=cutoffs_p28, lty=2)
-text("2.5%", x=cutoffs_p28[1], y=180, pos=4)
-text("97.5%", x=cutoffs_p28[2], y=180, pos=4)
+quantile(lla_stream_null, probs=c(0.025, .975))->cutoffs5
+abline(v=cutoffs5, lty=2)
+text("2.5%", x=cutoffs5[1], y=180, pos=4)
+text("97.5%", x=cutoffs5[2], y=180, pos=4)
 
 ## expected value (mean) from null:
-abline(v=mean(lla_null_range_p28), lty=2)
-text("mean", x=mean(lla_null_range_p28), y=265, pos=4)
+abline(v=mean(lla_stream_null), lty=2)
+text("mean", x=mean(lla_stream_null), y=170, pos=4)
 
-## add the observed range of log leaf area from plot 28
-max(plot28$logLeafArea) - min(plot28$logLeafArea)->lla_obs_range_p28
+#observed stream species range
+max(stream$logLeafArea) - min(stream$logLeafArea) ->lla_obs_range_stream
 
-abline(v=lla_obs_range_p28, col='red', lwd=3)
-text("observed value", x=lla_obs_range_p28, y= 250, pos=4, col="red")
-
-```
-
-
-```{r}
-
-
-```
-
-
-
-```{r}
-
-
-```
-
-
-```{r}
-
+abline(v=lla_obs_range_stream, col='red', lwd=3) # line marking observed lla range in stream plots
+text("observed value", x=lla_obs_range_stream, y= 275, pos=4, col="red")
 
 ```
 
 ```{r}
 
-
-```
-
-```{r}
 
 
 ```
