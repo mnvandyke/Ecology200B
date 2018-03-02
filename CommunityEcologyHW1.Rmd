@@ -9,7 +9,7 @@ output: pdf_document
 
 ```{r}
 #set working directory
-setwd("~/Box Sync/UCLA/Ecology 200B")
+setwd("~/Box Sync/UCLA/Ecology200B")
 #read in data
 plot_data <- read.csv("plot_data.csv")
 species_pool <- read.csv("species_pool.csv")
